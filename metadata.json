@@ -1,0 +1,8 @@
+{
+  "name": "BG-Monitoring",
+  "description": "Mobile app for monitoring mosquito traps, generating barcodes, and tracking locations on a map.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
