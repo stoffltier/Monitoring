@@ -7,8 +7,32 @@ import { AddView } from './components/AddView';
 import { ScanView } from './components/ScanView';
 import { EditView } from './components/EditView';
 import { TrackerItem } from './types';
+import { hasSupabaseConfig } from './supabase';
+import { AlertTriangle } from 'lucide-react';
 
 export default function App() {
+  if (!hasSupabaseConfig) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 p-6 text-center font-sans">
+        <div className="bg-white border border-red-200 shadow-lg p-6 rounded-xl max-w-md w-full">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Fehlende Konfiguration</h1>
+          <p className="text-gray-600 mb-6 text-sm">
+            Die App kann nicht gestartet werden, da die Verbindung zur Datenbank (Supabase) fehlt. 
+            Bitte hinterlege die folgenden Umgebungsvariablen (Environment Variables) in deinem Hosting-Dashboard (z.B. Vercel):
+          </p>
+          <div className="text-left font-mono text-xs bg-gray-100 p-4 rounded-lg border border-gray-200 mb-6 space-y-2 overflow-x-auto">
+            <div className="font-bold text-gray-800">VITE_SUPABASE_URL</div>
+            <div className="font-bold text-gray-800">VITE_SUPABASE_ANON_KEY</div>
+          </div>
+          <p className="text-sm text-gray-500">
+            Nachdem du die Variablen hinzugefügt hast, musst du die Seite neu laden (oder bei Vercel ein neues Deployment anstoßen).
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const { items, isLoading, addItem, updateItem, getItem, deleteItem } = useTrackerData();
   const [currentView, setCurrentView] = useState<ViewState>('map');
   const [editingItem, setEditingItem] = useState<TrackerItem | null>(null);
