@@ -48,15 +48,21 @@ function MapBounds({ items }: { items: TrackerItem[] }) {
   return null;
 }
 
-function LocateControl() {
-  const map = useMap();
+export function MapView({ items, onEditItem }: MapViewProps) {
+  const [map, setMap] = useState<L.Map | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
+  const itemsWithLocation = items.filter((item) => item.location);
+  
+  // Default center (Germany roughly)
+  const defaultCenter: [number, number] = [51.1657, 10.4515];
+
   const handleLocate = () => {
+    if (!map) return;
     setIsLocating(true);
     map.locate().on('locationfound', function (e) {
       setIsLocating(false);
-      map.flyTo(e.latlng, map.getZoom());
+      map.flyTo(e.latlng, map.getZoom() > 14 ? map.getZoom() : 15);
       
       // Add a small blue dot for user location
       L.circleMarker(e.latlng, {
@@ -69,49 +75,39 @@ function LocateControl() {
       }).addTo(map);
     }).on('locationerror', function (e) {
       setIsLocating(false);
-      alert('Standort konnte nicht ermittelt werden.');
+      alert('Standort konnte nicht ermittelt werden. Bitte überprüfe die Berechtigungen deines Browsers.');
     });
   };
 
   return (
-    <button
-      onClick={handleLocate}
-      disabled={isLocating}
-      className="absolute bottom-6 right-4 z-[1000] bg-white p-3 rounded-full shadow-lg border border-gray-200 text-blue-600 hover:bg-blue-50 transition disabled:opacity-50"
-      title="Mein Standort"
-    >
-      <Navigation className="w-6 h-6" />
-    </button>
-  );
-}
-
-export function MapView({ items, onEditItem }: MapViewProps) {
-  const itemsWithLocation = items.filter((item) => item.location);
-  
-  // Default center (Germany roughly)
-  const defaultCenter: [number, number] = [51.1657, 10.4515];
-
-  return (
     <div className="h-full w-full flex flex-col relative">
-      <div className="absolute top-4 left-4 right-4 z-[1000] bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-md border border-gray-200">
+      <div className="absolute top-4 left-4 right-4 z-[2000] bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-md border border-gray-200">
         <h1 className="text-lg font-bold text-gray-800">Standorte</h1>
         <p className="text-sm text-gray-500">
           {itemsWithLocation.length} von {items.length} Elementen auf der Karte
         </p>
       </div>
 
+      <button
+        onClick={handleLocate}
+        disabled={isLocating}
+        className="absolute bottom-8 right-4 z-[2000] bg-white p-3.5 rounded-full shadow-xl border border-gray-200 text-blue-600 hover:bg-blue-50 transition disabled:opacity-50 flex items-center justify-center"
+        title="Mein Standort"
+      >
+        <Navigation className={`w-6 h-6 ${isLocating ? 'animate-pulse' : ''}`} />
+      </button>
+
       <MapContainer
         center={defaultCenter}
         zoom={6}
         className="flex-1 w-full z-0"
         zoomControl={false}
+        ref={setMap}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
-        <LocateControl />
 
         {itemsWithLocation.length > 0 && <MapBounds items={itemsWithLocation} />}
 
